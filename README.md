@@ -1,1 +1,1 @@
-# Multidimensional-Data-Visualization-exam
+Multidimensional Data Visualization exam
