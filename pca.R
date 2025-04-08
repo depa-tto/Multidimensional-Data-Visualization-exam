@@ -12,6 +12,7 @@ library(Gifi)
 # data
 final_data <- read_csv("https://raw.githubusercontent.com/depa-tto/Multidimensional-Data-Visualization-exam/refs/heads/main/dataset_raw.csv")
 head(final_data)
+target <- final_data[,1]
 final_data <- final_data[, -1]
 
 # descriptive analysis
@@ -42,6 +43,23 @@ fviz_eig(pca,
 # biplot
 fviz_pca_biplot(pca, label = "var", repel = TRUE, geom = "point", invisible = "ind") +
   geom_label_repel(label = colnames(final_data), max.overlaps = Inf, size = 3) + theme_classic()
+
+
+
+ind_coord <- as.data.frame(pca$x[, 1:2]) 
+ind_coord$Country <- target$Country      
+p <- fviz_pca_biplot(pca,
+                     label = "var",       
+                     repel = TRUE,
+                     geom.ind = "point",   
+                     col.ind = "black",
+                     col.var = "#FC4E07",   
+                     invisible = "none"    
+) + theme_classic()
+p + geom_text_repel(data = ind_coord,
+                    aes(x = PC1, y = PC2, label = Country),
+                    size = 3)
+
 
 # plot of the loadings
 fviz_pca_var(pca,
@@ -110,7 +128,6 @@ sign_formatter_gt1 <- formatter("span", style = x ~ style(color = ifelse(x > 1, 
 )))
 
 formattable(as.data.frame(tab),
-  caption = "Fig. 1.3: eigenvalues and variance explained",
   align = c("r", "r", "r"),
   list(
     "Eigenvelues" = sign_formatter_gt1, "Variance(%)" = color_tile("transparent", "lightblue"),
@@ -129,18 +146,16 @@ eigen(rho)$vectors[, 1:3]
 
 # Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue
 comp <- round(cbind(
-  eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2]),
-  eigen(rho)$vectors[, 3] * sqrt(autoval[3])
-), 3)
+  eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])),3)
 rownames(comp) <- row.names(descriptive)
-colnames(comp) <- c("Component 1", "Component 2", "Component 3")
+colnames(comp) <- c("Component 1", "Component 2")
 comp
 
 # The sum of the squares of the values of each row of the component matrix is the respective 'communality',
 # The communality is the sum of the squared component loadings up to the number of components you extract.
-communality <- comp[, 1]^2 + comp[, 2]^2 + comp[, 3]^2
+communality <- comp[, 1]^2 + comp[, 2]^2 
 comp <- round(cbind(comp, communality), 3)
-colnames(comp) <- c("Component 1", "Component 2", "Component 3", "Communality")
+colnames(comp) <- c("Component 1", "Component 2", "Communality")
 comp
 
 sign_formatter_gt0 <- formatter("span", style = x ~ style(color = ifelse(x > 0, "green",
@@ -152,7 +167,6 @@ formattable(as.data.frame(comp),
   list(
     "Component 1" = sign_formatter_gt0,
     "Component 2" = sign_formatter_gt0,
-    "Component 3" = sign_formatter_gt0,
     "Communality" = color_tile("transparent", "lightblue")
   )
 )
@@ -182,87 +196,3 @@ plot(comp[, 1:3],
 text(comp, rownames(comp))
 abline(v = 0, h = 0, col = "#FC4E07")
 
-
-
-####################################################################################################
-
-# We select two components
-# Interpret the principal components selected by their coefficient vectors:
-eigen(rho)$vectors[, 1:2]
-
-# Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue
-comp <- round(cbind(eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])), 3)
-rownames(comp) <- row.names(descriptive)
-colnames(comp) <- c("Component 1", "Component 2")
-comp
-
-# The sum of the squares of the values of each row of the component matrix is the respective 'communality',
-# The communality is the sum of the squared component loadings up to the number of components you extract.
-communality <- comp[, 1]^2 + comp[, 2]^2
-comp <- round(cbind(comp, communality), 3)
-colnames(comp) <- c("Component 1", "Component 2", "Communality")
-comp
-
-sign_formatter_gt0 <- formatter("span", style = x ~ style(color = ifelse(x > 0, "green",
-  ifelse(x < 0, "#FC4E07", "black")
-)))
-
-formattable(as.data.frame(comp), align = c("r", "r", "r"), list(
-  "Component 1" = sign_formatter_gt0,
-  "Component 2" = sign_formatter_gt0,
-  "Communality" = color_tile("transparent", "lightblue")
-))
-
-
-
-# Calculate the scores for the selected components and graph them:
-
-final_data.scale <- scale(final_data, T, T)
-score <- final_data.scale %*% autovec[, 1:2]
-
-# normalized scores changed sign (non-normalized scores divided by square root of the respective eigenvalue)
-# score chart
-
-scorez <- round(cbind(-score[, 1] / sqrt(autoval[1]), -score[, 2] / sqrt(autoval[2])), 2)
-# plot(scorez, main="Scores plot",
-# xlab="comp1",ylab="comp2")
-# text(scorez, rownames(final_data))
-# abline(v=0,h=0,col="red")
-
-# Loadings plot
-
-plot(comp[, 1:2],
-  main = "Loadings plot",
-  xlab = "comp1", ylab = "comp2", xlim = range(-1, 1)
-)
-text(comp, rownames(comp))
-abline(v = 0, h = 0, col = "#FC4E07")
-
-
-
-x <- final_data %>%
-  select(
-    `Seat comfort`, `On-board service`, `Baggage handling`,
-    `Food and drink`, `Inflight wifi service`, `Inflight entertainment`
-  ) %>%
-  summarise(
-    Seat = mean(`Seat comfort`, na.rm = TRUE),
-    Cabin = mean(`On-board service`, na.rm = TRUE),
-    Food = mean(`Food and drink`, na.rm = TRUE),
-    Ground = mean(`Baggage handling`, na.rm = TRUE),
-    Inflight = mean(`Inflight entertainment`, na.rm = TRUE),
-    Wifi = mean(`Inflight wifi service`, na.rm = TRUE)
-  )
-
-
-formattable(as.data.frame(x),
-  caption = "Fig. 2.5: means of the airline company",
-  align = c("r", "r", "r"), list(
-    "Cabin" = color_tile("transparent", "lightblue"),
-    "Seat" = color_tile("transparent", "lightblue"),
-    "Food" = color_tile("transparent", "lightblue"),
-    "Ground" = color_tile("transparent", "lightblue"),
-    "Inflight" = color_tile("transparent", "lightblue"),
-    "Wifi" = color_tile("transparent", "lightblue")
-  )
-)
