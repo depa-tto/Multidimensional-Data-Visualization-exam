@@ -36,8 +36,8 @@ plot(pca, type = "l", main = "Variance explained by PCA")
 abline(h = 1, lwd = 3, col = "#FC4E07")
 
 fviz_eig(pca,
-  addlabels = TRUE, barfill = "#1B80BF", barcolor = "black",
-  linecolor = "#FC4E07"
+  addlabels = TRUE, barfill = "#4169E1", barcolor = "black",
+  linecolor = "#041C34"
 ) + theme_classic()
 
 # biplot
@@ -52,8 +52,8 @@ p <- fviz_pca_biplot(pca,
                      label = "var",       
                      repel = TRUE,
                      geom.ind = "point",   
-                     col.ind = "black",
-                     col.var = "#FC4E07",   
+                     col.ind = "#041C34",
+                     col.var = "#4169E1",   
                      invisible = "none"    
 ) + theme_classic()
 p + geom_text_repel(data = ind_coord,
