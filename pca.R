@@ -97,10 +97,6 @@ descriptive <- round(cbind(mean, sigma), 2)
 colnames(descriptive) <- c("Mean", "Sigma")
 descriptive
 
-formattable(as.data.frame(descriptive),
-  caption = "Fig. 1.1: descriptive analysis, mean and standard deviation of each variable",
-  align = c("r", "r", "r"), list("Mean" = color_tile("transparent", "lightblue"))
-)
 
 # PCA start from correlation matrix
 # calculate matrix R:
@@ -146,7 +142,7 @@ eigen(rho)$vectors[, 1:3]
 
 # Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue
 comp <- round(cbind(
-  eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])),3)
+ - eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])),3)
 rownames(comp) <- row.names(descriptive)
 colnames(comp) <- c("Component 1", "Component 2")
 comp
@@ -196,3 +192,54 @@ plot(comp[, 1:3],
 text(comp, rownames(comp))
 abline(v = 0, h = 0, col = "#FC4E07")
 
+
+
+##################################################################################
+# three components
+# We select three components 
+# Interpret the principal components selected by their coefficient vectors:
+eigen(rho)$vectors[,1:3]
+
+# Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue 
+comp <- round(cbind(- eigen(rho)$vectors[,1]*sqrt(autoval[1]), eigen(rho)$vectors[,2]*sqrt(autoval[2]), 
+                    eigen(rho)$vectors[,3]*sqrt(autoval[3])), 3)
+rownames(comp) <- row.names(descriptive)
+colnames(comp) <- c('Component 1','Component 2', 'Component 3')
+comp
+
+# The sum of the squares of the values of each row of the component matrix is the respective 'communality', 
+# The communality is the sum of the squared component loadings up to the number of components you extract.
+communality <- comp[,1]^2 + comp[,2]^2 + comp[,3]^2
+comp <- round(cbind(comp, communality),3)
+colnames(comp) <-c ('Component 1','Component 2', 'Component 3', 'Communality')
+comp
+
+sign_formatter_gt0 <- formatter("span", style = x ~ style(color = ifelse(x > 0, "green", 
+                                                                     ifelse(x < 0, "#FC4E07", "black"))))
+
+formattable(as.data.frame(comp), align = c ("r", "r", "r"), 
+            list('Component 1' = sign_formatter_gt0,
+            'Component 2' = sign_formatter_gt0,
+            'Component 3' = sign_formatter_gt0,
+            'Communality' = color_tile("transparent", "lightblue")))
+
+
+
+# Calculate the scores for the selected components and graph them:
+final_data.scale <- scale(final_data, T, T)
+score <- final_data.scale %*% autovec[,1:3]
+
+# normalized scores changed sign (non-normalized scores divided by square root of the respective eigenvalue)
+# score chart
+scorez <- round(cbind(-score[,1]/sqrt(autoval[1]),-score[,2]/sqrt(autoval[2]),
+                      -score[,3]/sqrt(autoval[3])),2)
+
+# plot(scorez, main="Scores plot",
+#     xlab="comp1",ylab="comp2")
+# text(scorez, rownames(final_data))
+# abline(v=0,h=0,col="red")
+# Loadings plot
+plot(comp[,1:3], main = "Loadings plot",
+     xlab="comp1", ylab="comp2", xlim=range(-1,1))
+text(comp, rownames(comp))
+abline(v = 0, h = 0, col = "#FC4E07")
