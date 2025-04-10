@@ -7,6 +7,8 @@ library(ggplot2)
 library(ggrepel)
 library(formattable)
 library(Gifi)
+library(plotly)
+library(htmlwidgets)
 
 
 # data
@@ -243,3 +245,103 @@ plot(comp[,1:3], main = "Loadings plot",
      xlab="comp1", ylab="comp2", xlim=range(-1,1))
 text(comp, rownames(comp))
 abline(v = 0, h = 0, col = "#FC4E07")
+
+
+
+####################################################################################
+
+loadings_df <- as.data.frame(comp[, 1:3])
+colnames(loadings_df) <- c("PC1", "PC2", "PC3")
+loadings_df$Feature <- rownames(comp)
+
+label_offset <- 1.15  
+fig_loadings <- plot_ly()
+
+for (i in seq_len(nrow(loadings_df))) {
+  fig_loadings <- fig_loadings %>%
+    add_trace(
+      type = "scatter3d",
+      mode = "lines",
+      x = c(0, loadings_df$PC1[i]),
+      y = c(0, loadings_df$PC2[i]),
+      z = c(0, loadings_df$PC3[i]),
+      line = list(color = "#4169E1", width = 4),
+      showlegend = FALSE
+    )
+}
+
+fig_loadings <- fig_loadings %>%
+  add_trace(
+    type = "scatter3d",
+    mode = "text",
+    x = loadings_df$PC1 * label_offset,
+    y = loadings_df$PC2 * label_offset,
+    z = loadings_df$PC3 * label_offset,
+    text = loadings_df$Feature,
+    textfont = list(size = 12, color = "black"),
+    showlegend = FALSE
+  )
+
+fig_loadings <- fig_loadings %>%
+  layout(
+    title = "3D Loadings Plot",
+    scene = list(
+      xaxis = list(title = 'Component 1'),
+      yaxis = list(title = 'Component 2'),
+      zaxis = list(title = 'Component 3')
+    )
+  )
+
+fig_loadings
+
+saveWidget(fig_loadings,file = "3D_loadings.html",selfcontained = TRUE)
+
+
+
+
+
+
+scorez_df <- as.data.frame(scorez)
+scorez_df$Country <- target$Country
+
+fig_full <- plot_ly()
+
+fig_full <- fig_full %>%
+  add_trace(
+    data = scorez_df,
+    x = ~V1, y = ~V2, z = ~V3,
+    type = 'scatter3d', mode = 'markers+text',
+    text = ~Country,
+    textposition = "top center",
+    marker = list(size = 4, color = '#4169E1'),
+    name = "Scores"
+  )
+
+for (i in seq_len(nrow(loadings_df))) {
+  fig_full <- fig_full %>%
+    add_trace(
+      type = "scatter3d", mode = "lines+text",
+      x = c(0, loadings_df[i, 1]),
+      y = c(0, loadings_df[i, 2]),
+      z = c(0, loadings_df[i, 3]),
+      line = list(color = 'black', width = 4),
+      text = loadings_df$Feature[i],
+      textposition = "top center",
+      showlegend = FALSE
+    )
+}
+
+fig_full <- fig_full %>%
+  layout(
+    title = "3D PCA Biplot (Scores + Loadings)",
+    scene = list(
+      xaxis = list(title = 'Component 1'),
+      yaxis = list(title = 'Component 2'),
+      zaxis = list(title = 'Component 3')
+    )
+  )
+
+fig_full
+
+
+saveWidget(fig_full,file = "3D_full.html",selfcontained = TRUE)
