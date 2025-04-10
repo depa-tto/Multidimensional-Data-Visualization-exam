@@ -14,7 +14,7 @@ library(htmlwidgets)
 # data
 final_data <- read_csv("https://raw.githubusercontent.com/depa-tto/Multidimensional-Data-Visualization-exam/refs/heads/main/dataset_raw.csv")
 head(final_data)
-target <- final_data[,1]
+target <- final_data[, 1]
 final_data <- final_data[, -1]
 
 # descriptive analysis
@@ -48,19 +48,21 @@ fviz_pca_biplot(pca, label = "var", repel = TRUE, geom = "point", invisible = "i
 
 
 
-ind_coord <- as.data.frame(pca$x[, 1:2]) 
-ind_coord$Country <- target$Country      
+ind_coord <- as.data.frame(pca$x[, 1:2])
+ind_coord$Country <- target$Country
 p <- fviz_pca_biplot(pca,
-                     label = "var",       
-                     repel = TRUE,
-                     geom.ind = "point",   
-                     col.ind = "#041C34",
-                     col.var = "#4169E1",   
-                     invisible = "none"    
+  label = "var",
+  repel = TRUE,
+  geom.ind = "point",
+  col.ind = "#041C34",
+  col.var = "#4169E1",
+  invisible = "none"
 ) + theme_classic()
-p + geom_text_repel(data = ind_coord,
-                    aes(x = PC1, y = PC2, label = Country),
-                    size = 3)
+p + geom_text_repel(
+  data = ind_coord,
+  aes(x = PC1, y = PC2, label = Country),
+  size = 3
+)
 
 
 # plot of the loadings
@@ -121,44 +123,60 @@ colnames(tab) <- c("Eigenvelues", "Variance(%)", "Cumulative variance(%)")
 tab
 
 
-sign_formatter_gt1 <- formatter("span", style = x ~ style(color = ifelse(x > 1, "green",
-  ifelse(x < 1, "#FC4E07", "black")
-)))
+sign_formatter_gt1 <- formatter(
+  "span",
+  style = function(x) {
+    col <- ifelse(x > 1, "green",
+      ifelse(x < 1, "#FC4E07", "black")
+    )
+    sprintf("color: %s", col)
+  }
+)
 
 formattable(as.data.frame(tab),
   align = c("r", "r", "r"),
   list(
-    "Eigenvelues" = sign_formatter_gt1, "Variance(%)" = color_tile("transparent", "lightblue"),
+    "Eigenvelues" = sign_formatter_gt1,
+    "Variance(%)" = color_tile("transparent", "lightblue"),
     "Cumulative variance(%)" = color_tile("transparent", "lightblue")
   )
 )
 
 
 # Use Scree Diagram to select the components:
-plot(autoval, type = "b", main = "Fig. 1.4: scree plot", xlab = "Number of Component", ylab = "Eigenvalues")
+plot(autoval, type = "b", main = "Scree plot", xlab = "Number of Component", ylab = "Eigenvalues")
 abline(h = 1, lwd = 3, col = "#FC4E07")
 
-# We select three components
+# We select two components
 # Interpret the principal components selected by their coefficient vectors:
 eigen(rho)$vectors[, 1:3]
 
 # Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue
 comp <- round(cbind(
- - eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])),3)
+  -eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2])
+), 3)
 rownames(comp) <- row.names(descriptive)
 colnames(comp) <- c("Component 1", "Component 2")
 comp
 
 # The sum of the squares of the values of each row of the component matrix is the respective 'communality',
 # The communality is the sum of the squared component loadings up to the number of components you extract.
-communality <- comp[, 1]^2 + comp[, 2]^2 
+communality <- comp[, 1]^2 + comp[, 2]^2
 comp <- round(cbind(comp, communality), 3)
 colnames(comp) <- c("Component 1", "Component 2", "Communality")
 comp
 
-sign_formatter_gt0 <- formatter("span", style = x ~ style(color = ifelse(x > 0, "green",
-  ifelse(x < 0, "#FC4E07", "black")
-)))
+
+sign_formatter_gt0 <- formatter(
+  "span",
+  style = function(x) {
+    col <- ifelse(x > 0, "green",
+      ifelse(x < 0, "#FC4E07", "black")
+    )
+    sprintf("color: %s", col)
+  }
+)
+
 
 formattable(as.data.frame(comp),
   align = c("r", "r", "r"),
@@ -198,51 +216,59 @@ abline(v = 0, h = 0, col = "#FC4E07")
 
 ##################################################################################
 # three components
-# We select three components 
+# We select three components
 # Interpret the principal components selected by their coefficient vectors:
-eigen(rho)$vectors[,1:3]
+eigen(rho)$vectors[, 1:3]
 
-# Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue 
-comp <- round(cbind(- eigen(rho)$vectors[,1]*sqrt(autoval[1]), eigen(rho)$vectors[,2]*sqrt(autoval[2]), 
-                    eigen(rho)$vectors[,3]*sqrt(autoval[3])), 3)
+# Matrix of the components, obtained by multiplying the eigenvector by the root of the respective eigenvalue
+comp <- round(cbind(
+  -eigen(rho)$vectors[, 1] * sqrt(autoval[1]), eigen(rho)$vectors[, 2] * sqrt(autoval[2]),
+  eigen(rho)$vectors[, 3] * sqrt(autoval[3])
+), 3)
 rownames(comp) <- row.names(descriptive)
-colnames(comp) <- c('Component 1','Component 2', 'Component 3')
+colnames(comp) <- c("Component 1", "Component 2", "Component 3")
 comp
 
-# The sum of the squares of the values of each row of the component matrix is the respective 'communality', 
+# The sum of the squares of the values of each row of the component matrix is the respective 'communality',
 # The communality is the sum of the squared component loadings up to the number of components you extract.
-communality <- comp[,1]^2 + comp[,2]^2 + comp[,3]^2
-comp <- round(cbind(comp, communality),3)
-colnames(comp) <-c ('Component 1','Component 2', 'Component 3', 'Communality')
+communality <- comp[, 1]^2 + comp[, 2]^2 + comp[, 3]^2
+comp <- round(cbind(comp, communality), 3)
+colnames(comp) <- c("Component 1", "Component 2", "Component 3", "Communality")
 comp
 
-sign_formatter_gt0 <- formatter("span", style = x ~ style(color = ifelse(x > 0, "green", 
-                                                                     ifelse(x < 0, "#FC4E07", "black"))))
 
-formattable(as.data.frame(comp), align = c ("r", "r", "r"), 
-            list('Component 1' = sign_formatter_gt0,
-            'Component 2' = sign_formatter_gt0,
-            'Component 3' = sign_formatter_gt0,
-            'Communality' = color_tile("transparent", "lightblue")))
+formattable(as.data.frame(comp),
+  align = c("r", "r", "r"),
+  list(
+    "Component 1" = sign_formatter_gt0,
+    "Component 2" = sign_formatter_gt0,
+    "Component 3" = sign_formatter_gt0,
+    "Communality" = color_tile("transparent", "lightblue")
+  )
+)
 
 
 
 # Calculate the scores for the selected components and graph them:
 final_data.scale <- scale(final_data, T, T)
-score <- final_data.scale %*% autovec[,1:3]
+score <- final_data.scale %*% autovec[, 1:3]
 
 # normalized scores changed sign (non-normalized scores divided by square root of the respective eigenvalue)
 # score chart
-scorez <- round(cbind(-score[,1]/sqrt(autoval[1]),-score[,2]/sqrt(autoval[2]),
-                      -score[,3]/sqrt(autoval[3])),2)
+scorez <- round(cbind(
+  -score[, 1] / sqrt(autoval[1]), -score[, 2] / sqrt(autoval[2]),
+  -score[, 3] / sqrt(autoval[3])
+), 2)
 
 # plot(scorez, main="Scores plot",
 #     xlab="comp1",ylab="comp2")
 # text(scorez, rownames(final_data))
 # abline(v=0,h=0,col="red")
 # Loadings plot
-plot(comp[,1:3], main = "Loadings plot",
-     xlab="comp1", ylab="comp2", xlim=range(-1,1))
+plot(comp[, 1:3],
+  main = "Loadings plot",
+  xlab = "comp1", ylab = "comp2", xlim = range(-1, 1)
+)
 text(comp, rownames(comp))
 abline(v = 0, h = 0, col = "#FC4E07")
 
@@ -254,7 +280,7 @@ loadings_df <- as.data.frame(comp[, 1:3])
 colnames(loadings_df) <- c("PC1", "PC2", "PC3")
 loadings_df$Feature <- rownames(comp)
 
-label_offset <- 1.15  
+label_offset <- 1.15
 fig_loadings <- plot_ly()
 
 for (i in seq_len(nrow(loadings_df))) {
@@ -286,17 +312,15 @@ fig_loadings <- fig_loadings %>%
   layout(
     title = "3D Loadings Plot",
     scene = list(
-      xaxis = list(title = 'Component 1'),
-      yaxis = list(title = 'Component 2'),
-      zaxis = list(title = 'Component 3')
+      xaxis = list(title = "Component 1"),
+      yaxis = list(title = "Component 2"),
+      zaxis = list(title = "Component 3")
     )
   )
 
 fig_loadings
 
-saveWidget(fig_loadings,file = "3D_loadings.html",selfcontained = TRUE)
-
-
+saveWidget(fig_loadings, file = "3D_loadings.html", selfcontained = TRUE)
 
 
 
@@ -310,10 +334,10 @@ fig_full <- fig_full %>%
   add_trace(
     data = scorez_df,
     x = ~V1, y = ~V2, z = ~V3,
-    type = 'scatter3d', mode = 'markers+text',
+    type = "scatter3d", mode = "markers+text",
     text = ~Country,
     textposition = "top center",
-    marker = list(size = 4, color = '#4169E1'),
+    marker = list(size = 4, color = "#4169E1"),
     name = "Scores"
   )
 
@@ -324,7 +348,7 @@ for (i in seq_len(nrow(loadings_df))) {
       x = c(0, loadings_df[i, 1]),
       y = c(0, loadings_df[i, 2]),
       z = c(0, loadings_df[i, 3]),
-      line = list(color = 'black', width = 4),
+      line = list(color = "black", width = 4),
       text = loadings_df$Feature[i],
       textposition = "top center",
       showlegend = FALSE
@@ -335,13 +359,13 @@ fig_full <- fig_full %>%
   layout(
     title = "3D PCA Biplot (Scores + Loadings)",
     scene = list(
-      xaxis = list(title = 'Component 1'),
-      yaxis = list(title = 'Component 2'),
-      zaxis = list(title = 'Component 3')
+      xaxis = list(title = "Component 1"),
+      yaxis = list(title = "Component 2"),
+      zaxis = list(title = "Component 3")
     )
   )
 
 fig_full
 
 
-saveWidget(fig_full,file = "3D_full.html",selfcontained = TRUE)
+saveWidget(fig_full, file = "3D_full.html", selfcontained = TRUE)
