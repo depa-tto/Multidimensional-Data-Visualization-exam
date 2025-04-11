@@ -256,8 +256,8 @@ score <- final_data.scale %*% autovec[, 1:3]
 # normalized scores changed sign (non-normalized scores divided by square root of the respective eigenvalue)
 # score chart
 scorez <- round(cbind(
-  -score[, 1] / sqrt(autoval[1]), -score[, 2] / sqrt(autoval[2]),
-  -score[, 3] / sqrt(autoval[3])
+  - score[, 1] / sqrt(autoval[1]), score[, 2] / sqrt(autoval[2]),
+  score[, 3] / sqrt(autoval[3])
 ), 2)
 
 # plot(scorez, main="Scores plot",
